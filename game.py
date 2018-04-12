@@ -1,5 +1,126 @@
 import random
 import time
+import pickle
+
+
+
+class UserOptionInput:
+
+	def __init__(self, type, message, option=()):
+		self.userInput= self.validate(type,message, option)
+
+	def validate(self, type, message, option):
+		userInput=None
+		try:
+			userInput= int(raw_input(message))
+			if option:
+				userInput= userInput
+				if userInput in option:
+					return userInput
+				else:
+					print("Error: You choose {}. Expected input are {}").format(str(userInput), option)
+					return False
+
+		except ValueError:
+			if type(userInput) is not type:
+				print("Error: The typed input is not a {}").format(type)
+				return False
+		return type(userInput)
+
+	def get_option(self):
+		return self.userInput
+
+class GameRules:
+	def __init__(self):
+		message = """
+		######## GAME RULES
+		#################################
+
+		5The game is divided into four steps:
+		1. Build Your Character
+		2. Choose the Door
+		3. Advance to the Next Door
+		4. Game Terminates
+
+		Pick a number to show a particular step
+		(or '5' to show all)
+		(or '0' to continue with the game)
+
+		"""
+
+		x = UserOptionInput(int, message, (0, 1, 2, 3, 4, 5)).get_option()
+		m2 = "Choose "
+		while (x != 0):
+			self.show(x)
+			x = UserOptionInput(int, message, (0, 1, 2, 3, 4, 5)).get_option()
+
+	def show(self, input):
+		print (input, type(input))
+
+		if input == 1:
+			self.build()
+		elif input == 2:
+			self.door()
+		elif input == 3:
+			self.continues()
+		elif input == 4:
+			self.over()
+		else:
+			self.build()
+			self.door()
+			self.continues()
+			self.over()
+
+	def build(self):
+		print(
+			"""
+            Build your character
+            ********************
+            Rules:
+            -------
+            1. Your character can have few qualities and a power value for each quality.
+            2. A quality can have power value as 0,1,2.
+            3. Your player can have total power less than or equal to 5.
+            4. While building your player, you can customize the powers values for any given quality.
+
+            Assign power value:
+            -------------------
+            1. You are shown names of all qualities your character can have.
+            2. Enter a value for a prompt for each quality your character can have which will be
+               either 0,1 or 2.
+            3. Sum of all powers should be equal or less than 5.
+            4. If the sun exceeds the total of 5, then you need to re-enter the values.
+            5. After building your character you can proceed to play the game.
+            """
+		)
+
+	def door(self):
+		print("""
+	Choose a door
+	**************
+	1. After your character is ready, you need to choose a door to get into the ring.
+	2. Behind each door there is a opponent waiting for you to compete.
+
+	In the ring
+	*************
+	1. Your player competes with a opponent for a given task.
+	2. If you win in a particular task, the excess power you have wrt to your opponent gets added to your energy.
+	3. If you loose in a particular task, your energy get reduced accordingly.
+		""")
+
+	def continues(self):
+		print("""
+	Advance to the next door (Game continues...)
+	*********************************************
+	1. You are directed to choose the next door if you have positive energy left after a fight.""")
+
+	def over(self):
+		print(
+			"""
+        Game over
+        **********
+        1. If your energy become non-positive after a fight, then the game terminates.
+        2. Your achievements are shown thereafter.""")
 
 class Character:
 	def __init__(self, name, powers):
@@ -7,11 +128,20 @@ class Character:
 		self.powers= powers
 
 class Player(Character):
-	def __init__(self, energy):
+	def __init__(self, energy, maxPower):
+		# print("You need to build your player.")
+		# print("##############################")
+		# time.sleep(1)
+		# print("  > Scale values[0/1/2] of your player on these qualities: {}").format((', ').join(["\"" + x + "\"" for x in self.show_qualities()]))
+		# print("  > You have a total power value of {}, on which you need to scale values of your player.").format(maxPower)
+
+		time.sleep(1)
 		self.name= self.set_name()
 		self.powers= self.set_powers()
 		self.energy= energy
 		Character.__init__(self,self.name, self.powers)
+
+		time.sleep(1)
 
 
 	def get_energy(self, input=0):
@@ -26,8 +156,9 @@ class Player(Character):
 		return self.name
 
 	def set_powers(self):
-		print("\n Assign power of your player for each quality")
-		print(" Allowed Values are 0, 1 or 2.")
+		time.sleep(2)
+		print("\nAssign power of your player for each quality")
+		print("Allowed Values are 0, 1 or 2.")
 		powers=[]
 		sumFlag= False
 		while(not sumFlag):
@@ -62,30 +193,15 @@ class Player(Character):
 	def get_power(self):
 		return self.powers
 
-class RuleSetup:
-	def __init__(self, qualities, relation):
-		"""Welcome to the Game		
-		"""
-		self.qualities= qualities
-		self.relation= relation
+class Stalwart:
 
-	def get_relation_value(self, p1, p2):
-		x= p1-1
-		y=p2-1
-		return self.relation[x][y]
+	def __init__(self, stalwarts):
+		self.stalwarts=stalwarts
 
-	def show_qualities(self):
-		return self.qualities
-
-class Stalwart():
-
-	def __init__(self):
-		self.stalwarts=[]
-
-	def add(self, name, power):
-		# x= Character.__init__(self,name,power)
-		x= (name, power)
-		self.stalwarts.append(x)
+	# def add(self, name, power):
+	# 	# x= Character.__init__(self,name,power)
+	# 	x= (name, power)
+	# 	self.stalwarts.append(x)
 
 	def print_obj(self):
 		for obj in self.stalwarts:
@@ -94,45 +210,34 @@ class Stalwart():
 	def print_nStalwart(self):
 		print "No of entered stalwarts: {}".format(len(self.stalwarts))
 
-	def get_power(self, name):
+	def get_stalwart_power(self, name):
 		return [y[1] for x,y in enumerate(self.stalwarts) if(y[0].lower()==name.lower())][0]
 
-class UserOptionInput:
+class Task:
+	def __init__(self):
+		self.taskNumber= 0
+		self.task= []
 
-	def __init__(self, type, message, option=()):
-		self.userInput= self.validate(type,message, option)
+	def set_task(self, taskSet):
+		i= random.choice(range(len(taskSet)))
+		j= random.choice(range(len(taskSet[i][1])))
 
-	def validate(self, type, message, option):
-		userInput=None
-		try:
-			userInput= int(raw_input(message))
-			if option:
-				userInput= userInput
-				if userInput in option:
-					return userInput
-				else:
-					print("Error: You choose {}. Expected input are {}").format(str(userInput), option)
-					return False
+		self.task.append( (taskSet[i][0], taskSet[i][1][j]))
+		self.taskNumber+=1
 
-		except ValueError:
-			if type(userInput) is not type:
-				print("Error: The typed input is not a {}").format(type)
-				return False
-		return type(userInput)
-
-	def get_option(self):
-		return self.userInput
+	def get_task(self):
+		return self.task
 
 class Door:
 	def __init__(self):
-		print(
-			"< >< >< >< >< >< < >< >< >< >< >< < >< >< >< >< >< < >< >< >< >< >< "
-			"\n< >< >< >< >< >< > Which door you want to enter? < >< >< >< >< >< \n"
-		)
 		self.allOptions= None
 		self.option= None
 
 	def set_option(self,choice):
+		print(
+			"< >< >< >< >< >< < >< >< >< >< >< < >< >< >< >< >< < >< >< >< >< >< "
+			"\n< >< >< >< >< >< > Which door you want to enter? < >< >< >< >< >< \n"
+		)
 		flag= False
 		option= None
 		while(not flag):
@@ -144,27 +249,19 @@ class Door:
 			else: print("          Incorrect input. Try again.")
 		self.allOptions= choice
 		self.option= option
+		print ("You choose DOOR {}".format(self.option_choosen() + 1))
 
 	def option_choosen(self):
 		return self.option
 
+	def options_not_chosen(self):
+		doorChosen = self.option_choosen()
+		doors = self.get_all_options()
+		doors.remove(doorChosen)
+		return doors
+
 	def get_all_options(self):
 		return self.allOptions
-
-class Task:
-	def __init__(self):
-		self.taskNumber= 0
-		self.task= []
-
-	def set_task(self, taskSet):
-		i= random.choice(range(len(taskSet)))
-		j= random.choice(range(len(taskSet[i][1])))
-		# self.taskField.add(taskSet[i][0])
-		self.task.append( (taskSet[i][0], taskSet[i][1][j]))
-		self.taskNumber+=1
-
-	def get_task(self):
-		return self.task
 
 class Opponent:
 	def __init__(self):
@@ -179,11 +276,201 @@ class Opponent:
 	def get_opponent(self):
 		return self.opponents
 
+# CONSTS: QUALITIES, RELATION,TASKS, STALWARTS
+class Game(Stalwart):
+	def __init__(self, qualities, relation, tasks, stalwarts):
+		print("Game initializing...")
+
+		self.qualities = qualities
+		self.relation = relation
+		self.tasks= tasks
+		# self.stalwarts= stalwarts
+		#
+		# self.iStalwarts= Stalwart()
+		#
+		# # Calling methods
+		# self.set_stalwarts()
+
+		Stalwart.__init__(self, stalwarts)
+
+		time.sleep(2)
+
+		print "Game initilized."
+		print ("")
+
+	# @classmethod
+	# def set_stalwarts(self):
+	# 	[self.iStalwart.add(x[0], x[1]) for x in self.stalwarts]
+
+
+	def get_relation_value(self, p1, p2):
+		x = p1 - 1
+		y = p2 - 1
+		return self.relation[x][y]
+
+	def show_qualities(self):
+		return self.qualities
+
+
+
+class Fight(Task, Opponent, Door):
+	def __init__(self, nTasks=3):
+		self.nTasks= nTasks # No of options/doors choice given to the user
+		Task.__init__(self)
+		Opponent.__init__(self)
+		Door.__init__(self)
+
+	def initiate(self, tasks, stalwarts):
+		for _ in range(self.nTasks):
+			self.set_opponent(stalwarts)
+			self.set_task(tasks)
+
+		print("Your opponents are ready behind the door. "
+			  "\n  ** Choose a door from the given options."
+			  "\n  ** And increase your total energy after defeating them.")
+
+		print("\n")
+
+		# User chooses door here
+		self.set_option(range(0, self.nTasks))
+
+		return [self.get_task(), self.get_opponent(), self.option_choosen(), self.options_not_chosen()]
+
+
+	def get_result(self, powerPlayer1, powerPlayer2, tasks, relationMatrix):
+		coeff = relationMatrix[tasks]
+		score1 = sum([powerPlayer1[x] * coeff[x] for x in range(len(coeff))])
+		score2 = sum([powerPlayer2[x] * coeff[x] for x in range(len(coeff))])
+		time.sleep(2)
+		return score1 - score2
+
+
+
+class StartGame(Game, Player, Fight):
+	def __init__(self, QUALITIES, RELATION,TASKS, STALWARTS, initialEnergy=5, maxPower=5):
+		# Game.__init__(self, QUALITIES, RELATION,TASKS, STALWARTS)
+		print("Let's start ......")
+		print ("")
+		Game.__init__(self,qualities=QUALITIES, relation=RELATION, tasks=TASKS, stalwarts=STALWARTS)
+
+		print("You need to build your player.")
+		print("##############################")
+		time.sleep(1)
+		print("  > Scale values[0/1/2] of your player on these qualities: {}").format((', ').join(["\"" + x + "\"" for x in self.show_qualities()]))
+		print("  > You have a total power value of {}, on which you need to scale values of your player.").format(maxPower)
+
+		Player.__init__(self, energy=initialEnergy, maxPower=maxPower)
+
+		print("\nYou have successfully build your player. Congratulations!!")
+		print ("#############################################################")
+
+
+		Fight.__init__(self)
+
+		# self.iGame= iGame
+		# self.iPlayer= self.build_player(initialEnergy, maxPower)
+		# self.build_player(initialEnergy, maxPower)
+
+	# def build_player(self, initialEnergy, maxPower):
+	# 	print("You need to build your player.")
+	# 	print("##############################")
+	# 	print("  > Scale values[0/1/2] of your player on these qualities: {}").format((', ').join(["\"" + x + "\"" for x in self.show_qualities()]))
+	# 	print("  > You have a total power value of {}, on which you need to scale values of your player.").format(maxPower)
+	#
+	# 	# inst= Player(initialEnergy)
+	# 	print("\nYou have successfully build your player. Congratulations!!")
+	# 	print ("#############################################################")
+	# 	return inst
+
+	def welcome(self):
+		print(" " * 20 + "WELCOME TO THE GAME, {} ").format((self.get_name() ).title())
+
+		print ("\n" * 1)
+
+
+	def one_round_play(self):
+		time.sleep(4)
+		tasks, opponents, doorChosen, doorsNotChosen= self.initiate(self.tasks, self.stalwarts)
+
+		playerPower = self.get_power()
+		opponent = opponents[doorChosen][0]
+		opponentPower = opponents[doorChosen][1]
+		gameTask = tasks[doorChosen][1]
+		gameTaskField = tasks[doorChosen][0] - 1
+
+		print "\n"
+		print(
+			"" + "*" * 10 + " Your are facing {} on  task: {} " + "*" * 10 + "\n"
+		).format(opponent, gameTask)
+
+		time.sleep(2)
+		# Doors not choose data
+		print(" " * 5 + "Who are the opponent on other not chosen doors?")
+		for x in doorsNotChosen:
+			# print ("Door: {} || Task: {} || Opponent: {}").format(x + 1, tasks[x], opponents[x])
+			print (" " * 7 + " Door: {} || Opponent: {}").format(
+				x + 1, opponents[x][0])
+
+		print "\n"
+
+		time.sleep(3)
+
+		result = self.get_result(playerPower, opponentPower, gameTaskField, self.relation)
+
+		if result > 0:
+			print(" " * 15 + " You defeated {}. Wow!!".format(opponent))
+		elif (result == 0):
+			print(" " * 12 + " The game was drawn with {}. So close!!".format(opponent))
+		else:
+			print(" " * 12 + " You got defeated by {}. Never mind!!".format(opponent))
+
+		# newEnergy= iPlayer.get_energy(input= result)
+
+
+		time.sleep(2)
+
+		return result
+
+
+	def play(self):
+
+		self.welcome()
+
+		time.sleep(1)
+
+		playerEnergy= self.get_energy()
+		while (playerEnergy > 0):
+
+			result = self.one_round_play()
+
+			playerEnergy = self.get_energy(result)
+			print(
+				">< >< >< >< >< ><       Your current energy: {}        >< >< >< >< >< "
+				"\n>< >< >< >< >< ==================================== < >< >< >< >< >< "
+			).format(playerEnergy)
+
+			print "\n"
+			if playerEnergy > 0:
+				print"\n**************** NEXT DOOR *******************"
+			else:
+				print" \n Your seems to be exhausted. Play Again " \
+					 "\n**************** GAME OVER **********************"
+
+
+
+
+
+
+
+
+
+
+
 if __name__== "__main__":
 	# what are differnt powers
 	# how power are related to esch other
 	QUALITIES= ('sports', 'politics', 'entrepreneurship','science','entertainment')
-	# INTER_POWER_COEFFICIENTS=[0,1,2,3]
+
 	RELATION=(
 		(3,1,1,0,1),
 		(1,3,0,1,2),
@@ -199,7 +486,6 @@ if __name__== "__main__":
 		(5, ("task51", "task52", "task53", "task54", "task55")),
 	)
 
-
 	# Add stalwarts
 	STALWARTS=(
 		('Virat', (4,0,2,0,1)),
@@ -209,189 +495,25 @@ if __name__== "__main__":
 		('Alpachino', (1,1,2,0,3))
 	)
 
-	########## GAME RULES
-	#################################
-	# print(
-	# """
-	# Build your character
-	# ********************
-	# Rules:
-	# 1. Your character can have five qualities and a power for each quality.
-	# 2. A quality can have power value as 0,1,2.
-	# 3. By default your character has power of "1" for each quality.
-	# 4. You can customize the powers of your character for a given quality to either 0,1 or 2 but the
-	#    sum of total powers should be 5.
+
+	##
+
+	c = StartGame(QUALITIES, RELATION, TASKS, STALWARTS)
+	c.play()
+
+	# g= GameRules()
+
+
+
+
+
+	# data= {1:"harsh"}
+	# with open('progress.dat', 'w') as f:
+	# 	pickle.dump(data, f)
     #
-	# Acions:
-	# 1. You are shown names of all qualities your character can have.
-	# 2. Enter a value for a prompt for each quality your character can have which will be
-	#    either 0,1 or 2.
-	# 3. Sum of all powers should be equal or less than 5.
-	# 4. It the sun exceeds the total of 5, then you need to enter again.
-	# 5. After building your character you can proceed to choose the door.
-    #
-    #
-    # Choose a door
-    # *************
-    # 1. After your character is ready, you need to choose a door to get into the ring.
-    #
-    # In the ring
-    # *************
-    # 1. You character competes with a opponent for a given task.
-    # 2. If you win in a particular task, you get excess power wrt to your opponent added to you energy.
-    # 3. If you loose in a particular task, your energy get reduced accordingly.
-    # 4. Next, you are directed to choose the next door.
-    # 5. If your energy become non-positive then the game terminates. Your achievements are
-     #    shown thereafter.
-	# """)
-
-    ########## INITIALIZING
-	################################
-
-	print("Game initializing...")
-	# print("\n"*2)
-
-	iRuleSetup = RuleSetup(QUALITIES, RELATION)
-
-	iStalwart = Stalwart()
-	[iStalwart.add(x[0], x[1]) for x in STALWARTS]
-
-	# time.sleep(3)
-	print "Game initilized."
-	print ("")
-
-	print("Let's start ......")
-	print ("")
-	print("You need to build your player.")
-	print("##############################")
-
-	print("  > Scale values[0/1/2] of your player on these qualities: {}").format(
-		(', ').join(["\""+x+"\"" for x in iRuleSetup.show_qualities()])
-	)
-
-	print("  > You have a total power vakue of {}, on which you need to scale values of your player.").format(len(QUALITIES))
-
-	INITIAL_ENERGY= 5
-	print("  > Initially your player has energy value of {}").format(INITIAL_ENERGY)
-
-	# Build your player
-	iPlayer= Player(INITIAL_ENERGY)
-
-	print("\nYou have successfully build your player. Congratulations!!")
-	print ("#############################################################")
-
-
-	# game
-	# player has positive energy
-	# sets tasks and opponent
-	# player choose a door
-	# player plays a game with an opponent
-	# player energy get revised
-
-	print(" "*20+"WELCOME TO THE GAME, {} ").format((iPlayer.get_name()).title())
-
-	print ("\n" * 1)
-
-
-	def get_result(player1, player2, task, relationMatrix):
-		coeff= relationMatrix[task]
-		score1= sum([player1[x]* coeff[x] for x in range(len(coeff))])
-		score2 = sum([player2[x] * coeff[x] for x in range(len(coeff))])
-		time.sleep(2)
-		return score1-score2
-
-
-	def fight(nTasks, TASKS, iStalwart, iPlayer):
-		# nTasks= nDoors = nOpponent
-
-		t=Task()
-		o=Opponent()
-		for x in range(nTasks):
-			t.set_task(TASKS)
-			o.set_opponent(iStalwart.stalwarts)
-
-		tasks= t.get_task()
-		opponents= o.get_opponent()
-
-		print("Your opponents are ready behind the door. "
-			  "\n  ** Choose a door from the given options."
-			  "\n  ** And increase your total energy after defeating them.")
-
-		print("\n")
-
-		door= Door()
-		door.set_option(range(0,nTasks))
-		doorChosen= door.option_choosen()
-		doorAllChoice= door.get_all_options()
-		doorAllChoice.remove(doorChosen)
-		print ("You choose DOOR {}".format(doorChosen+1))
-
-		playerPower= iPlayer.get_power()
-		opponent= opponents[doorChosen][0]
-		opponentPower= opponents[doorChosen][1]
-		gameTask= tasks[doorChosen][1]
-		gameTaskField = tasks[doorChosen][0]-1
-
-		print "\n"
-		print(
-			"  "+"*"*10+" Your are facing {} on  task: {} "+"*"*10+"\n"
-		).format(opponent, gameTask)
-
-		#Doors not choose data
-		print( " " * 5 + "Who are the opponent on other not chosen doors?")
-		for x in doorAllChoice:
-			# print ("Door: {} || Task: {} || Opponent: {}").format(x + 1, tasks[x], opponents[x])
-			print (" "*7+" Door: {} || Opponent: {} || task: {}").format(
-				x+1, opponents[x][0], tasks[x][1])
-
-		print "\n"
-
-		result= get_result(playerPower, opponentPower, gameTaskField, RELATION)
-
-		if result > 0:
-			print(" "*15+" You defeated {}. Wow!!".format(opponent))
-		elif(result == 0):
-			print(" "*12+" The game was drawn with {}. So close!!".format(opponent))
-		else:
-			print(" "*12+" You got defeated by {}. Never mind!!".format(opponent))
-
-		# newEnergy= iPlayer.get_energy(input= result)
-
-
-		time.sleep(2)
-
-		return result
-
-
-	def game():
-
-		playerEnergy= iPlayer.get_energy()
-		playerPower= iPlayer.get_power()
-
-		while (playerEnergy > 0):
-			print "PLAYER CURRENT ENERGY:", iPlayer.get_energy()
-			result= fight(3, TASKS, iStalwart, iPlayer)
-
-			playerEnergy= iPlayer.get_energy(result)
-			print(
-				">< >< >< >< >< >< >< >< Your current energy: {} >< >< >< >< >< >< >< "
-				"\n>< >< >< >< >< >< >< >< >< >< >< >< < >< >< >< >< >< < >< >< >< >< >< "
-			).format(playerEnergy)
-
-			print "\n"
-			if playerEnergy>0:
-				print"\n**************** NEXT DOOR *******************"
-			else:
-				print" \n**************** GAME OVER **********************"
-
-	game()
-
-
-
-
-
-
-
+	# with open('progress.dat') as f:
+	# 	data2 = pickle.load(f)
+	# 	print data2
 
 
 
