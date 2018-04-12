@@ -1,5 +1,5 @@
 # cli-game
-### A python powered cli game to play and defeat few well-konwn legends.
+### A python powered cli game to play and defeat few well-known legends.
 
 
 We always have a fantasy on competing with legends in some field other than in which they have expertize. Like 
