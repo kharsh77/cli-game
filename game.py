@@ -1,6 +1,7 @@
 import random
 import time
 import pickle
+import os.path
 
 
 
@@ -126,27 +127,89 @@ class GameRules:
         1. If your energy become non-positive after a fight, then the game terminates.
         2. Your achievements are shown thereafter.""")
 
+
+class SaveGame:
+	def __init__(self, backUpFile='progress'):
+		self.backUpFile = backUpFile
+		self.gameData = None
+		self.player = None
+
+
+	def backup_check(self):
+		if os.path.isfile(self.backUpFile):
+			with open(self.backUpFile) as f:
+				d = pickle.load(f)
+				f.close()
+				if d is not None:
+					self.gameData = d
+					self.choose_player()
+					return
+		d = []
+		with open(self.backUpFile, 'w') as f:
+			pickle.dump(d, f)
+			f.close()
+		self.choose_player()
+		return
+
+	def choose_player(self):
+		l = [(k, [s for p, s in enumerate(v) if p == 0][0]) for k, v in enumerate(self.gameData)]
+		if l:
+			print("Either choose index of player: {}").format([(k + 1, s) for k, s in enumerate(l)])
+			print("\n '0' to create a new player")
+			input = int(raw_input("Choose a option: {}"))
+			if input == 0:
+				return False
+			else:
+				return l[input - 1]
+		else:
+			return False
+
+	def create_player(self, name, power):
+		obj = {str(name): {"played": [], "resume": [],"powers":None}}
+		obj["powers"]=power
+		self.player = obj
+		self.gameData.append(obj)
+
+	def save_game_over(self):
+		pop = self.player["resume"].pop()
+		self.player["played"].append(pop)
+
+	def new_game(self):
+		obj = {"time": int(time.time()), "fights": []}
+		self.player["resume"].append(obj)
+
+	def new_fight(self, fTask, fOpponent, fResult, fScore, fInfo):
+		obj = [fTask, fOpponent, fResult, fScore, fInfo]
+		self.player["resume"]["fights"].append(obj)
+
+	def backup_data(self):
+		with open(self.backUpFile, 'w') as f:
+			pickle.dump(self.gameData, f)
+			f.close()
+
+
 class Character:
 	def __init__(self, name, powers):
 		self.name= name
 		self.powers= powers
 
-class Player(Character):
+class Player(Character, SaveGame):
 	def __init__(self, energy, maxPower):
+
 		# print("You need to build your player.")
 		# print("##############################")
 		# time.sleep(1)
 		# print("  > Scale values[0/1/2] of your player on these qualities: {}").format((', ').join(["\"" + x + "\"" for x in self.show_qualities()]))
 		# print("  > You have a total power value of {}, on which you need to scale values of your player.").format(maxPower)
-
+		SaveGame.__init__(self)
 		time.sleep(1)
 		self.name= self.set_name()
 		self.powers= self.set_powers()
 		self.energy= energy
-		Character.__init__(self,self.name, self.powers)
 
-		time.sleep(1)
+		Character.__init__(self, self.name, self.powers)
 
+	time.sleep(1)
 
 	def get_energy(self, input=0):
 		# input can be positive or negative
@@ -192,6 +255,9 @@ class Player(Character):
 				print("     ...total power summed {}, which exceeded the limit. Please enter again.").format(sum(powers))
 				powers = []
 			else: sumFlag= True
+
+		self.create_player(self.name, self.get_power())
+		self.backup_data()
 		return powers
 
 	def get_power(self):
@@ -297,7 +363,7 @@ class Game(Stalwart, GameRules):
 		print "Game initilized."
 		print ("")
 
-		GameRules.__init__(self);
+		# GameRules.__init__(self)
 
 	def get_relation_value(self, p1, p2):
 		x = p1 - 1
@@ -342,12 +408,15 @@ class Fight(Task, Opponent, Door):
 
 
 
-class StartGame(Game, Player, Fight):
+class StartGame(Game, Player, Fight, SaveGame):
 	def __init__(self, QUALITIES, RELATION,TASKS, STALWARTS, initialEnergy=5, maxPower=5):
 
 		Game.__init__(self,qualities=QUALITIES, relation=RELATION, tasks=TASKS, stalwarts=STALWARTS)
 		print("Let's start ......")
 		print ("\n"*2)
+		SaveGame.__init__(self)
+		self.backup_check()
+		self.choose_player()
 		print("You need to build your player.")
 		print("##############################")
 		time.sleep(1)
@@ -355,6 +424,8 @@ class StartGame(Game, Player, Fight):
 		print("  > You have a total power value of {}, on which you need to scale values of your player.").format(maxPower)
 
 		Player.__init__(self, energy=initialEnergy, maxPower=maxPower)
+
+
 
 		print("\nYou have successfully build your player. Congratulations!!")
 		print ("#############################################################")
@@ -472,10 +543,20 @@ if __name__== "__main__":
 
 
 
+	# data= {1:"harsh"}
+	# with open('progress.dat', 'w') as f:
+	# 	pickle.dump(data, f)
+    #
+	# with open('progress.dat') as f:
+	# 	data2 = pickle.load(f)
+	# 	print data2
 
 
 
 
+
+	# s=SaveGame()
+	# s.check()
 
 
 
